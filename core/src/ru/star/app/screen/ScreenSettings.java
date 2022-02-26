@@ -1,4 +1,4 @@
-package ru.star.app;
+package ru.star.app.screen;
 
 public class ScreenSettings {
     public static final int SCREEN_WIDTH = 1280;

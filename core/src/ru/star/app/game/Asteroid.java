@@ -1,28 +1,45 @@
-package ru.star.app;
+package ru.star.app.game;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import ru.star.app.game.helpers.Poolable;
 
-import static ru.star.app.ScreenSettings.SCREEN_HEIGHT;
-import static ru.star.app.ScreenSettings.SCREEN_WIDTH;
+import static ru.star.app.screen.ScreenSettings.SCREEN_HEIGHT;
+import static ru.star.app.screen.ScreenSettings.SCREEN_WIDTH;
 
-public class Asteroid {
-    private Texture texture;
+public class Asteroid implements Poolable {
+
     private Vector2 position;
     private float angle;
+    private boolean active;
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public Vector2 getPosition() {
+        return position;
+    }
+
+    public float getAngle() {
+        return angle;
+    }
 
     public Asteroid() {
-        texture = new Texture("asteroid.png");
-        position = new Vector2(MathUtils.random(0, SCREEN_WIDTH), MathUtils.random(0, SCREEN_HEIGHT));
+        position = new Vector2();
         angle = MathUtils.random(0, 360);
     }
 
-    public void render(SpriteBatch batch) {
-        batch.draw(texture, position.x - 128, position.y - 128, 128, 128,
-                256, 256, 1, 1, angle,
-                0, 0, 256, 256, false, false);
+    public void activate(float x, float y, float angle){
+        this.position.set(x, y);
+        this.angle = angle;
+        this.active = true;
+    }
+
+    public void deactivate(){
+        active = false;
     }
 
     public void update(float dt) {
