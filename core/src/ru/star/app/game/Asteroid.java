@@ -1,19 +1,43 @@
 package ru.star.app.game;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import ru.star.app.game.helpers.Poolable;
+import ru.star.app.screen.utils.Assets;
 
 import static ru.star.app.screen.ScreenSettings.SCREEN_HEIGHT;
 import static ru.star.app.screen.ScreenSettings.SCREEN_WIDTH;
 
 public class Asteroid implements Poolable {
-
+    private TextureRegion texture;
     private Vector2 position;
-    private float angle;
+    private Vector2 velocity;
     private boolean active;
+    private int hpMax;
+    private int hp;
+    private float angle;
+    private float rotationSpeed;
+    private Circle hitArea;
+    private float scale;
+
+    private final float BASE_SIZE = 256.0f;
+    private final float BASE_RADIUS = BASE_SIZE / 2;
+
+
+    public float getScale() {
+        return scale;
+    }
+
+    public int getHpMax() {
+        return hpMax;
+    }
+
+    public Circle getHitArea() {
+        return hitArea;
+    }
 
     public boolean isActive() {
         return active;
@@ -23,45 +47,63 @@ public class Asteroid implements Poolable {
         return position;
     }
 
-    public float getAngle() {
-        return angle;
-    }
-
     public Asteroid() {
-        position = new Vector2();
-        angle = MathUtils.random(0, 360);
+        this.position = new Vector2();
+        this.velocity = new Vector2();
+        this.hitArea = new Circle();
+        this.texture = Assets.getInstance().getAtlas().findRegion("asteroid");
     }
 
-    public void activate(float x, float y, float angle){
+    public void activate(float x, float y, float vx, float vy, float scale) {
         this.position.set(x, y);
-        this.angle = angle;
+        this.velocity.set(vx, vy);
+        this.angle = MathUtils.random(0, 360);
         this.active = true;
+        this.hpMax = (int) (10 * scale);
+        this.hp = hpMax;
+        this.scale = scale;
+        this.hitArea.setPosition(x, y);
+        this.hitArea.setRadius(BASE_RADIUS * scale * 0.9f);
+        this.rotationSpeed = MathUtils.random(-180, 180);
     }
 
-    public void deactivate(){
+    public void deactivate() {
         active = false;
     }
 
     public void update(float dt) {
-        position.x += MathUtils.cosDeg(angle) * 300 * dt;
-        position.y += MathUtils.sinDeg(angle) * 300 * dt;
+        position.mulAdd(velocity, dt);
+        angle += rotationSpeed * dt;
         checkBorder();
+
+    }
+
+    public void render(SpriteBatch batch) {
+        batch.draw(texture, position.x - 128, position.y - 128, 128, 128,
+                256, 256, scale, scale, angle);
     }
 
     private void checkBorder() {
         if (position.x < -128) {
             position.x = SCREEN_WIDTH + 128;
-            position.y = MathUtils.random(0, SCREEN_HEIGHT);
         } else if (position.x > SCREEN_WIDTH + 128) {
             position.x = -128;
-            position.y = MathUtils.random(0, SCREEN_HEIGHT);
         }
         if (position.y < -128) {
-            position.x = MathUtils.random(0, SCREEN_WIDTH);
             position.y = SCREEN_HEIGHT + 128;
         } else if (position.y > SCREEN_HEIGHT + 128) {
-            position.x = MathUtils.random(0, SCREEN_WIDTH);
             position.y = -128;
+        }
+        hitArea.setPosition(position);
+    }
+
+    public boolean takeDamage(int amount) {
+        hp -= amount;
+        if (hp <= 0) {
+            deactivate();
+            return true;
+        } else {
+            return false;
         }
     }
 
