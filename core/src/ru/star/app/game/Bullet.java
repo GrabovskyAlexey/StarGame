@@ -19,6 +19,10 @@ public class Bullet implements Poolable {
         return position;
     }
 
+    public Vector2 getVelocity() {
+        return velocity;
+    }
+
     @Override
     public boolean isActive() {
         return active;
