@@ -2,6 +2,7 @@ package ru.star.app.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Circle;
@@ -25,17 +26,13 @@ public class Hero {
     private int hpMax;
     private int hp;
     private Circle hitArea;
+    private StringBuilder sb;
+    private Weapon weapon;
+    private int coins;
 
-    public int getScoreView() {
-        return scoreView;
-    }
 
     public void addScore(int score) {
         this.score += score;
-    }
-
-    public int getHp() {
-        return hp;
     }
 
     public Circle getHitArea() {
@@ -63,7 +60,9 @@ public class Hero {
         this.SHIP_SPEED = 500.0f;
         this.hpMax = 100;
         this.hp = hpMax;
-        this.hitArea = new Circle(position, 31.0f);
+        this.hitArea = new Circle(position, 28.0f);
+        this.sb = new StringBuilder();
+        this.weapon = new Weapon(gc.getBulletController(), Weapon.WeaponType.SINGLE);
     }
 
     public void render(SpriteBatch batch) {
@@ -71,14 +70,47 @@ public class Hero {
                 64, 64, 1, 1, angle);
     }
 
+    public void pickupPowerUps(PowerUps powerUps){
+        switch(powerUps.getType()){
+            case HP:
+                increaseHP(10);
+                break;
+            case AMMO:
+                weapon.increaseAmmo(20);
+                break;
+            case COINS:
+                increaseCoin(100);
+                break;
+            case WEAPON_UPGRADE:
+                weaponUpgrade();
+                break;
+        }
+        powerUps.deactivate();
+    }
+
+    private void weaponUpgrade() {
+        int weaponType = weapon.getType().ordinal() + 1;
+        if(weaponType < Weapon.WeaponType.values().length){
+            weapon.upgradeWeapon(Weapon.WeaponType.values()[weaponType]);
+        } else {
+            weapon.increaseAmmo(weapon.getMaxBullets() - weapon.getCurrBullets());
+        }
+    }
+
+    private void increaseHP(int amount) {
+        hp += amount;
+        if(hp>hpMax) {
+            hp = hpMax;
+        }
+    }
+
+    private void increaseCoin(int amount) {
+        coins += amount;
+    }
+
     public void update(float dt) {
         fireTimer += dt;
-        if(scoreView < score){
-            scoreView += 1500 *dt;
-            if(scoreView > score){
-                scoreView = score;
-            }
-        }
+        updateScore(dt);
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             angle += 180 * dt;
@@ -88,29 +120,45 @@ public class Hero {
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
             velocity.x += MathUtils.cosDeg(angle) * SHIP_SPEED * dt;
             velocity.y += MathUtils.sinDeg(angle) * SHIP_SPEED * dt;
+
+            float bx = position.x + MathUtils.cosDeg(angle + 180) * 25;
+            float by = position.y + MathUtils.sinDeg(angle + 180) * 25;
+            for (int i = 0; i < 3; i++) {
+                gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
+                        velocity.x * -0.1f + MathUtils.random(-10, 10), velocity.y * -0.1f + MathUtils.random(-10, 10),
+                        0.3f,
+                        1.2f, 0.2f,
+                        1.0f, 0.5f, 0.0f, 1.0f,
+                        1.0f, 1.0f, 0.0f, 0.0f);
+            }
+
         } else if (Gdx.input.isKeyPressed(Input.Keys.S)) {
             velocity.x -= MathUtils.cosDeg(angle) * (SHIP_SPEED / 2) * dt;
             velocity.y -= MathUtils.sinDeg(angle) * (SHIP_SPEED / 2) * dt;
+
+            float bx = position.x + MathUtils.cosDeg(angle + 90) * 25;
+            float by = position.y + MathUtils.sinDeg(angle + 90) * 25;
+            for (int i = 0; i < 3; i++) {
+                gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
+                        velocity.x * 0.1f + MathUtils.random(-10, 10), velocity.y * 0.1f + MathUtils.random(-10, 10),
+                        0.2f,
+                        1.2f, 0.2f,
+                        1.0f, 0.5f, 0.0f, 1.0f,
+                        1.0f, 1.0f, 0.0f, 0.0f);
+            }
+            bx = position.x + MathUtils.cosDeg(angle - 90) * 25;
+            by = position.y + MathUtils.sinDeg(angle - 90) * 25;
+            for (int i = 0; i < 3; i++) {
+                gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
+                        velocity.x * 0.1f + MathUtils.random(-10, 10), velocity.y * 0.1f + MathUtils.random(-10, 10),
+                        0.2f,
+                        1.2f, 0.2f,
+                        1.0f, 0.5f, 0.0f, 1.0f,
+                        1.0f, 1.0f, 0.0f, 0.0f);
+            }
         }
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            if (fireTimer > 0.2f) {
-                fireTimer = 0.0f;
-                float wx = position.x + MathUtils.cosDeg(angle + 90) * 20;
-                float wy = position.y + MathUtils.sinDeg(angle + 90) * 20;
-
-                gc.getBulletController().setup(wx, wy,
-                        MathUtils.cosDeg(angle) * 500 + velocity.x,
-                        MathUtils.sinDeg(angle) * 500 + velocity.y
-                );
-
-                wx = position.x + MathUtils.cosDeg(angle - 90) * 20;
-                wy = position.y + MathUtils.sinDeg(angle - 90) * 20;
-
-                gc.getBulletController().setup(wx, wy,
-                        MathUtils.cosDeg(angle) * 500 + velocity.x,
-                        MathUtils.sinDeg(angle) * 500 + velocity.y
-                );
-            }
+            tryToFire();
         }
         position.mulAdd(velocity, dt);
         float lessEnginePowerKoef = 1.0f - dt;
@@ -121,6 +169,31 @@ public class Hero {
         velocity.scl(lessEnginePowerKoef);
         checkBorder();
 
+    }
+
+    private void updateScore(float dt) {
+        if (scoreView < score) {
+            scoreView += 1500 * dt;
+            if (scoreView > score) {
+                scoreView = score;
+            }
+        }
+    }
+
+    private void tryToFire() {
+        if (fireTimer > weapon.getFirePeriod()) {
+            fireTimer = 0.0f;
+            weapon.fire(position, velocity, angle);
+        }
+    }
+
+    public void renderGUI(SpriteBatch batch, BitmapFont font32) {
+        sb.setLength(0);
+        sb.append("SCORE: ").append(scoreView).append("\n")
+                .append("HP: ").append(hp).append("/").append(hpMax).append("\n")
+                .append("AMMO: ").append(weapon.getCurrBullets()).append("/").append(weapon.getMaxBullets()).append("\n")
+                .append("COINS: ").append(coins);
+        font32.draw(batch, sb, 20, 700);
     }
 
     private void checkBorder() {
@@ -141,9 +214,9 @@ public class Hero {
         this.hitArea.setPosition(position);
     }
 
-    public boolean takeDamage(int damage){
+    public boolean takeDamage(int damage) {
         hp -= damage;
-        return hp <=0;
+        return hp <= 0;
     }
 
 }
