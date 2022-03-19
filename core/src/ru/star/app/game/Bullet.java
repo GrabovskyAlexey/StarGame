@@ -9,6 +9,11 @@ public class Bullet implements Poolable {
     private Vector2 position;
     private Vector2 velocity;
     private boolean active;
+    private int damage;
+
+    public int getDamage() {
+        return damage;
+    }
 
     public Vector2 getPosition() {
         return position;
@@ -31,6 +36,7 @@ public class Bullet implements Poolable {
         this.velocity.x = vx;
         this.velocity.y = vy;
         active = true;
+        damage = 1;
     }
 
     public void deactivate() {
