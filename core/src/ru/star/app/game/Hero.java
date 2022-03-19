@@ -10,8 +10,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import ru.star.app.screen.utils.Assets;
 
-import static ru.star.app.screen.ScreenSettings.SCREEN_HEIGHT;
-import static ru.star.app.screen.ScreenSettings.SCREEN_WIDTH;
+import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
+import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
 
 public class Hero {
     private GameController gc;
@@ -29,7 +29,6 @@ public class Hero {
     private StringBuilder sb;
     private Weapon weapon;
     private int coins;
-
 
     public void addScore(int score) {
         this.score += score;
@@ -51,6 +50,10 @@ public class Hero {
         return angle;
     }
 
+    public int getScore() {
+        return score;
+    }
+
     public Hero(GameController gc) {
         this.gc = gc;
         this.texture = Assets.getInstance().getAtlas().findRegion("ship");
@@ -62,7 +65,7 @@ public class Hero {
         this.hp = hpMax;
         this.hitArea = new Circle(position, 28.0f);
         this.sb = new StringBuilder();
-        this.weapon = new Weapon(gc.getBulletController(), Weapon.WeaponType.SINGLE);
+        this.weapon = new Weapon(gc.getBulletController(), Weapon.WeaponType.TRIPLE);
     }
 
     public void render(SpriteBatch batch) {
@@ -72,17 +75,14 @@ public class Hero {
 
     public void pickupPowerUps(PowerUps powerUps){
         switch(powerUps.getType()){
-            case HP:
+            case MEDKIT:
                 increaseHP(10);
                 break;
-            case AMMO:
+            case AMMOS:
                 weapon.increaseAmmo(20);
                 break;
-            case COINS:
+            case MONEY:
                 increaseCoin(100);
-                break;
-            case WEAPON_UPGRADE:
-                weaponUpgrade();
                 break;
         }
         powerUps.deactivate();

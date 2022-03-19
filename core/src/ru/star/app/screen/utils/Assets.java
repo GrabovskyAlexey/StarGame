@@ -9,7 +9,7 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
-import ru.star.app.screen.ScreenSettings;
+import ru.star.app.screen.ScreenManager.ScreenType;
 
 public class Assets {
     private static final Assets ourInstance = new Assets();
@@ -33,13 +33,20 @@ public class Assets {
         assetManager = new AssetManager();
     }
 
-    public void loadAssets(ScreenSettings.ScreenType type) {
+    public void loadAssets(ScreenType type) {
         switch (type) {
             case GAME:
                 assetManager.load("images/game.pack", TextureAtlas.class);
                 createStandardFont(32);
-                assetManager.finishLoading();
-                textureAtlas = assetManager.get("images/game.pack", TextureAtlas.class);
+                break;
+            case MENU:
+                assetManager.load("images/game.pack", TextureAtlas.class);
+                createStandardFont(72);
+                createStandardFont(24);
+                break;
+            case GAME_OVER:
+                assetManager.load("images/game.pack", TextureAtlas.class);
+                createStandardFont(72);
                 break;
         }
     }
@@ -60,5 +67,9 @@ public class Assets {
 
     public void clear() {
         assetManager.clear();
+    }
+
+    public void makeLinks(){
+        textureAtlas = assetManager.get("images/game.pack", TextureAtlas.class);
     }
 }

@@ -70,7 +70,7 @@ public class Weapon {
                 maxBullets = 150;
                 break;
             case TRIPLE:
-                slots = new Vector3[]{new Vector3(28, 0, 0), new Vector3(28, 90, 25), new Vector3(28, -90, -25)};
+                slots = new Vector3[]{new Vector3(28, 0, 0), new Vector3(28, 90, 10), new Vector3(28, -90, -10)};
                 firePeriod = 0.2f;
                 damage = 2;
                 bulletSpeed = 600.0f;

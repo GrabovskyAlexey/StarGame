@@ -1,9 +1,14 @@
 package ru.star.app.game;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import ru.star.app.screen.ScreenManager;
 
-import static ru.star.app.screen.ScreenSettings.*;
+import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
+import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
+import static ru.star.app.screen.ScreenManager.ScreenType.GAME_OVER;
 
 public class GameController {
     private Background bg;
@@ -14,6 +19,7 @@ public class GameController {
     private PowerUpsController powerUpsController;
     private final int ASTEROID_MAX_COUNT = 2;
     private Vector2 tempVector;
+    private boolean pause;
 
     public AsteroidController getAsteroidController() {
         return asteroidController;
@@ -39,7 +45,6 @@ public class GameController {
         return hero;
     }
 
-
     public GameController() {
         this.bg = new Background(this);
         this.bulletController = new BulletController(this);
@@ -48,25 +53,31 @@ public class GameController {
         this.hero = new Hero(this);
         this.tempVector = new Vector2();
         this.particleController = new ParticleController();
+        this.pause = false;
     }
 
     public void update(float dt) {
-        bg.update(dt);
-        hero.update(dt);
-        bulletController.update(dt);
-        particleController.update(dt);
-        powerUpsController.update(dt);
-        if (asteroidController.getActiveList().size() < ASTEROID_MAX_COUNT) {
-            if (MathUtils.random(0, 400) < 1) {
-                asteroidController.setup(MathUtils.random(0, SCREEN_WIDTH),
-                        MathUtils.random(0, SCREEN_HEIGHT),
-                        MathUtils.random(-150, 150), MathUtils.random(-150, 150), 1);
-            }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
+            pause = !pause;
         }
-        asteroidController.update(dt);
-        checkCollision();
-        checkShipCollision();
-        checkPickPowerUps();
+        if(!pause) {
+            bg.update(dt);
+            hero.update(dt);
+            bulletController.update(dt);
+            particleController.update(dt);
+            powerUpsController.update(dt);
+            if (asteroidController.getActiveList().size() < ASTEROID_MAX_COUNT) {
+                if (MathUtils.random(0, 400) < 1) {
+                    asteroidController.setup(MathUtils.random(0, SCREEN_WIDTH),
+                            MathUtils.random(0, SCREEN_HEIGHT),
+                            MathUtils.random(-150, 150), MathUtils.random(-150, 150), 1);
+                }
+            }
+            asteroidController.update(dt);
+            checkCollision();
+            checkShipCollision();
+            checkPickPowerUps();
+        }
     }
 
     private void checkPickPowerUps(){
@@ -74,6 +85,7 @@ public class GameController {
             PowerUps powerUps = powerUpsController.getActiveList().get(i);
             if (hero.getHitArea().overlaps(powerUps.getHitArea())) {
                 hero.pickupPowerUps(powerUps);
+                particleController.getEffectBuilder().takePowerUpsEffect(powerUps);
             }
         }
     }
@@ -94,7 +106,7 @@ public class GameController {
                         -200 * hero.getHitArea().radius / sumScale);
 
                 if (asteroid.takeDamage(2)) {
-                    powerUpsController.setup(asteroid.getPosition().x, asteroid.getPosition().y);
+                    powerUpsController.setup(asteroid.getPosition().x, asteroid.getPosition().y, 0.1f);
                     float scale = asteroid.getScale() - 0.3f;
                     if (scale >= 0.39) {
                         asteroidController.breakAsteroid(asteroid.getPosition().x, asteroid.getPosition().y, scale);
@@ -102,7 +114,8 @@ public class GameController {
                     hero.addScore(asteroid.getHpMax() * 50);
                 }
                 if (hero.takeDamage(2)) {
-                    //GAME OVER
+                    ScreenManager.getInstance().setGameOverScore(hero.getScore());
+                    ScreenManager.getInstance().changeScreen(GAME_OVER);
                 }
             }
         }
@@ -124,7 +137,7 @@ public class GameController {
                             1.0f, 1.0f, 0.0f, 0.0f);
                     bullet.deactivate();
                     if (asteroid.takeDamage(bullet.getDamage())) {
-                        powerUpsController.setup(asteroid.getPosition().x, asteroid.getPosition().y);
+                        powerUpsController.setup(asteroid.getPosition().x, asteroid.getPosition().y, 0.25f);
                         float scale = asteroid.getScale() - 0.3f;
                         if (scale >= 0.39) {
                             asteroidController.breakAsteroid(asteroid.getPosition().x, asteroid.getPosition().y, scale);

@@ -4,8 +4,8 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import ru.star.app.StarGame;
 
-import static ru.star.app.screen.ScreenSettings.SCREEN_HEIGHT;
-import static ru.star.app.screen.ScreenSettings.SCREEN_WIDTH;
+import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
+import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
 
 public class DesktopLauncher {
     public static void main(String[] arg) {

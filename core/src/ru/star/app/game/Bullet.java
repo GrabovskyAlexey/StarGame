@@ -3,7 +3,7 @@ package ru.star.app.game;
 import com.badlogic.gdx.math.Vector2;
 import ru.star.app.game.helpers.Poolable;
 
-import static ru.star.app.screen.ScreenSettings.*;
+import static ru.star.app.screen.ScreenManager.*;
 
 public class Bullet implements Poolable {
     private Vector2 position;

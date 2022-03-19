@@ -8,8 +8,8 @@ import com.badlogic.gdx.math.Vector2;
 import ru.star.app.game.helpers.Poolable;
 import ru.star.app.screen.utils.Assets;
 
-import static ru.star.app.screen.ScreenSettings.SCREEN_HEIGHT;
-import static ru.star.app.screen.ScreenSettings.SCREEN_WIDTH;
+import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
+import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
 
 public class Asteroid implements Poolable {
     private TextureRegion texture;
