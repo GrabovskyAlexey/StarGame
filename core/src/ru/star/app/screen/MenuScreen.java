@@ -63,8 +63,6 @@ public class MenuScreen extends AbstractScreen {
         stage.addActor(btnNewGame);
         stage.addActor(btnExitGame);
         skin.dispose();
-
-
     }
 
     public void update(float dt) {
@@ -84,6 +82,7 @@ public class MenuScreen extends AbstractScreen {
 
     @Override
     public void dispose() {
-
+        bg.dispose();
+        stage.dispose();
     }
 }

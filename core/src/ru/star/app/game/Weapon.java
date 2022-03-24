@@ -5,9 +5,6 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public class Weapon {
-    public enum WeaponType {
-        SINGLE, DUAL, TRIPLE
-    }
 
     private int maxBullets;
     private int currBullets;
@@ -15,18 +12,18 @@ public class Weapon {
     private float firePeriod;
     private int damage;
     private float bulletSpeed;
-    private WeaponType type;
 
     private Vector3[] slots;
 
-    public Weapon(BulletController bulletController, WeaponType type) {
-        this.bulletController = bulletController;
-        this.type = type;
-        createSlots();
-    }
 
-    public WeaponType getType() {
-        return type;
+    public Weapon(BulletController bulletController, float firePeriod, int damage, float bulletSpeed, int maxBullets, Vector3[] slots) {
+        this.maxBullets = maxBullets;
+        this.currBullets = maxBullets;
+        this.bulletController = bulletController;
+        this.firePeriod = firePeriod;
+        this.damage = damage;
+        this.bulletSpeed = bulletSpeed;
+        this.slots = slots;
     }
 
     public int getMaxBullets() {
@@ -48,38 +45,6 @@ public class Weapon {
         }
     }
 
-    public void upgradeWeapon(WeaponType type){
-        this.type = type;
-        createSlots();
-    }
-
-    private void createSlots() {
-        switch (type) {
-            case SINGLE:
-                slots = new Vector3[]{new Vector3(28, 0, 0)};
-                firePeriod = 0.4f;
-                damage = 1;
-                bulletSpeed = 300.0f;
-                maxBullets = 100;
-                break;
-            case DUAL:
-                slots = new Vector3[]{new Vector3(20, 90, 0), new Vector3(20, -90, 0)};
-                firePeriod = 0.3f;
-                damage = 2;
-                bulletSpeed = 500.0f;
-                maxBullets = 150;
-                break;
-            case TRIPLE:
-                slots = new Vector3[]{new Vector3(28, 0, 0), new Vector3(28, 90, 10), new Vector3(28, -90, -10)};
-                firePeriod = 0.2f;
-                damage = 2;
-                bulletSpeed = 600.0f;
-                maxBullets = 170;
-                break;
-        }
-        currBullets = maxBullets;
-    }
-
     public void fire(Vector2 position, Vector2 velocity, float angle) {
         if (currBullets > 0) {
             currBullets--;
@@ -92,6 +57,5 @@ public class Weapon {
                 bulletController.setup(x, y, vx, vy);
             }
         }
-
     }
 }

@@ -22,9 +22,14 @@ public class Asteroid implements Poolable {
     private float rotationSpeed;
     private Circle hitArea;
     private float scale;
+    private int damage;
 
     private final float BASE_SIZE = 256.0f;
     private final float BASE_RADIUS = BASE_SIZE / 2;
+
+    public int getDamage() {
+        return damage;
+    }
 
     public Vector2 getVelocity() {
         return velocity;
@@ -57,12 +62,13 @@ public class Asteroid implements Poolable {
         this.texture = Assets.getInstance().getAtlas().findRegion("asteroid");
     }
 
-    public void activate(float x, float y, float vx, float vy, float scale) {
+    public void activate(float x, float y, float vx, float vy, float scale, int level) {
         this.position.set(x, y);
         this.velocity.set(vx, vy);
         this.angle = MathUtils.random(0, 360);
         this.active = true;
-        this.hpMax = (int) (10 * scale);
+        this.hpMax = (int) (10 * scale) + level;
+        this.damage = level + (int) (scale * level);
         this.hp = hpMax;
         this.scale = scale;
         this.hitArea.setPosition(x, y);

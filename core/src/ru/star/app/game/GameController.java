@@ -2,8 +2,10 @@ package ru.star.app.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import ru.star.app.screen.ScreenManager;
 
 import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
@@ -17,9 +19,10 @@ public class GameController {
     private AsteroidController asteroidController;
     private ParticleController particleController;
     private PowerUpsController powerUpsController;
-    private final int ASTEROID_MAX_COUNT = 2;
     private Vector2 tempVector;
     private boolean pause;
+    private Stage stage;
+    private int level;
 
     public AsteroidController getAsteroidController() {
         return asteroidController;
@@ -45,7 +48,11 @@ public class GameController {
         return hero;
     }
 
-    public GameController() {
+    public Stage getStage() {
+        return stage;
+    }
+
+    public GameController(SpriteBatch batch) {
         this.bg = new Background(this);
         this.bulletController = new BulletController(this);
         this.asteroidController = new AsteroidController();
@@ -54,33 +61,53 @@ public class GameController {
         this.tempVector = new Vector2();
         this.particleController = new ParticleController();
         this.pause = false;
+        this.stage = new Stage(ScreenManager.getInstance().getViewport(), batch);
+        this.stage.addActor(hero.getShop());
+        this.level = 0;
+        Gdx.input.setInputProcessor(stage);
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     public void update(float dt) {
         if (Gdx.input.isKeyJustPressed(Input.Keys.P)) {
             pause = !pause;
+            hero.getShop().setVisible(pause);
         }
-        if(!pause) {
+        if (!hero.getShop().isVisible() && pause) {
+            pause = false;
+        }
+
+        stage.act(dt);
+        if (!pause) {
             bg.update(dt);
-            hero.update(dt);
             bulletController.update(dt);
             particleController.update(dt);
             powerUpsController.update(dt);
-            if (asteroidController.getActiveList().size() < ASTEROID_MAX_COUNT) {
-                if (MathUtils.random(0, 400) < 1) {
-                    asteroidController.setup(MathUtils.random(0, SCREEN_WIDTH),
-                            MathUtils.random(0, SCREEN_HEIGHT),
-                            MathUtils.random(-150, 150), MathUtils.random(-150, 150), 1);
-                }
+            if (asteroidController.getActiveList().size() == 0) {
+                level++;
+                createAsteroids(level);
             }
             asteroidController.update(dt);
-            checkCollision();
-            checkShipCollision();
-            checkPickPowerUps();
+            hero.update(dt);
+        }
+        checkMagnetic();
+        checkCollision();
+        checkShipCollision();
+        checkPickPowerUps();
+    }
+
+    public void createAsteroids(int count) {
+        for (int i = 0; i < count; i++) {
+            asteroidController.setup(MathUtils.random(0, SCREEN_WIDTH),
+                    MathUtils.random(0, SCREEN_HEIGHT),
+                    MathUtils.random(-150, 150), MathUtils.random(-150, 150), 1, level);
         }
     }
 
-    private void checkPickPowerUps(){
+    private void checkPickPowerUps() {
         for (int i = 0; i < powerUpsController.getActiveList().size(); i++) {
             PowerUps powerUps = powerUpsController.getActiveList().get(i);
             if (hero.getHitArea().overlaps(powerUps.getHitArea())) {
@@ -104,19 +131,29 @@ public class GameController {
                         200 * asteroid.getHitArea().radius / sumScale);
                 asteroid.getVelocity().mulAdd(tempVector,
                         -200 * hero.getHitArea().radius / sumScale);
-
                 if (asteroid.takeDamage(2)) {
                     powerUpsController.setup(asteroid.getPosition().x, asteroid.getPosition().y, 0.1f);
                     float scale = asteroid.getScale() - 0.3f;
                     if (scale >= 0.39) {
-                        asteroidController.breakAsteroid(asteroid.getPosition().x, asteroid.getPosition().y, scale);
+                        asteroidController.breakAsteroid(asteroid.getPosition().x, asteroid.getPosition().y, scale, level);
                     }
                     hero.addScore(asteroid.getHpMax() * 50);
                 }
-                if (hero.takeDamage(2)) {
-                    ScreenManager.getInstance().setGameOverScore(hero.getScore());
-                    ScreenManager.getInstance().changeScreen(GAME_OVER);
+                if (hero.takeDamage(asteroid.getDamage())) {
+                    ScreenManager.getInstance().changeScreen(GAME_OVER, hero);
                 }
+            }
+        }
+    }
+
+    private void checkMagnetic() {
+        for (int i = 0; i < powerUpsController.getActiveList().size(); i++) {
+            PowerUps powerUps = powerUpsController.getActiveList().get(i);
+            if (hero.getMagneticArea().overlaps(powerUps.getHitArea())) {
+                float dst = powerUps.getPosition().dst(hero.getPosition());
+                float speed = (powerUps.getHitArea().radius + hero.getMagneticArea().radius - dst) / (level * 10.0f);
+                tempVector.set(hero.getPosition()).sub(powerUps.getPosition()).nor();
+                powerUps.getPosition().mulAdd(tempVector, speed);
             }
         }
     }
@@ -140,7 +177,7 @@ public class GameController {
                         powerUpsController.setup(asteroid.getPosition().x, asteroid.getPosition().y, 0.25f);
                         float scale = asteroid.getScale() - 0.3f;
                         if (scale >= 0.39) {
-                            asteroidController.breakAsteroid(asteroid.getPosition().x, asteroid.getPosition().y, scale);
+                            asteroidController.breakAsteroid(asteroid.getPosition().x, asteroid.getPosition().y, scale, level);
                         }
                         hero.addScore(asteroid.getHpMax() * 100);
                     }

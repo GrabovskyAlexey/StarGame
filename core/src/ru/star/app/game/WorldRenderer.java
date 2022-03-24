@@ -24,6 +24,8 @@ public class WorldRenderer {
         gc.getPowerUpsController().render(batch);
         gc.getHero().render(batch);
         gc.getHero().renderGUI(batch, font32);
+        gc.getHero().drawMagneticField(batch);
         batch.end();
+        gc.getStage().draw();
     }
 }

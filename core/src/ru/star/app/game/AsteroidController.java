@@ -25,15 +25,15 @@ public class AsteroidController extends ObjectPool<Asteroid> {
         checkPool();
     }
 
-    public void setup(float x, float y, float vx, float vy, float scale) {
-        getActiveElement().activate(x, y, vx, vy, scale);
+    public void setup(float x, float y, float vx, float vy, float scale, int level) {
+        getActiveElement().activate(x, y, vx, vy, scale, level);
     }
 
-    public void breakAsteroid(float x, float y, float scale) {
+    public void breakAsteroid(float x, float y, float scale, int level) {
         for (int i = 0; i < BREAK_ASTEROID_COUNT; i++) {
             setup(x, y,
                     MathUtils.random(-150, 150),
-                    MathUtils.random(-150, 150), scale
+                    MathUtils.random(-150, 150), scale, level
             );
         }
 

@@ -8,10 +8,6 @@ import com.badlogic.gdx.math.Vector2;
 import ru.star.app.game.helpers.Poolable;
 
 public class PowerUps implements Poolable {
-    public enum PowerUpsType{
-        HP, AMMO, COINS
-    }
-
     public enum Type {
         MEDKIT(0), MONEY(1), AMMOS(2);
 
