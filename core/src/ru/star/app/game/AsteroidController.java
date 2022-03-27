@@ -31,6 +31,7 @@ public class AsteroidController extends ObjectPool<Asteroid> {
 
     public void breakAsteroid(float x, float y, float scale, int level) {
         for (int i = 0; i < BREAK_ASTEROID_COUNT; i++) {
+
             setup(x, y,
                     MathUtils.random(-150, 150),
                     MathUtils.random(-150, 150), scale, level

@@ -9,13 +9,12 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import ru.star.app.screen.utils.Assets;
 
 import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
 import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
 
-public class Hero {
+public class Hero extends Ship{
     public enum HeroUpgrade {
         HPMAX(10, 10), HP(5, 10), WEAPON(100, 1), MAGNETIC(50, 10), BULLET(10, 20);
         int cost;
@@ -27,27 +26,16 @@ public class Hero {
         }
     }
 
-    private GameController gc;
-    private TextureRegion texture;
+
     private TextureRegion starTexture;
-    private Vector2 position;
-    private Vector2 velocity;
-    private float angle;
-    private float SHIP_SPEED;
-    private float fireTimer;
     private int score;
     private int scoreView;
-    private int hpMax;
-    private int hp;
-    private Circle hitArea;
     private Circle magneticArea;
     private float magneticRadius;
     private StringBuilder sb;
-    private Weapon weapon;
     private int coins;
     private Shop shop;
-    private Weapon[] weapons;
-    private int currWeapon;
+
 
     public int getCoins() {
         return coins;
@@ -65,41 +53,26 @@ public class Hero {
         this.score += score;
     }
 
-    public Circle getHitArea() {
-        return hitArea;
-    }
-
-    public Vector2 getPosition() {
-        return position;
-    }
-
-    public Vector2 getVelocity() {
-        return velocity;
-    }
-
     public int getScore() {
         return score;
     }
 
     public Hero(GameController gc) {
-        this.gc = gc;
+        super(gc, Weapon.WeaponOwner.HERO);
         this.texture = Assets.getInstance().getAtlas().findRegion("ship");
         this.starTexture = Assets.getInstance().getAtlas().findRegion("star16");
         this.position = new Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
         this.velocity = new Vector2(0, 0);
         this.angle = 0.0f;
         this.SHIP_SPEED = 500.0f;
-        this.magneticRadius = 156.0f;
+        this.magneticRadius = 56.0f;
         this.hpMax = 100;
         this.hp = hpMax;
         this.hitArea = new Circle(position, 28.0f);
         this.magneticArea = new Circle(position, magneticRadius);
         this.sb = new StringBuilder();
         this.shop = new Shop(this);
-        this.currWeapon = 0;
-        createWeapon();
         this.coins = 100;
-        this.weapon = weapons[0];
     }
 
     public boolean isMoneyEnough(int amount) {
@@ -143,24 +116,29 @@ public class Hero {
         }
     }
 
-    public void render(SpriteBatch batch) {
-        batch.draw(texture, position.x - 32, position.y - 32, 32, 32,
-                64, 64, 1, 1, angle);
-    }
-
     public void pickupPowerUps(PowerUps powerUps) {
+        sb.setLength(0);
+        Color drawColor = Color.WHITE;
         switch (powerUps.getType()) {
             case MEDKIT:
-                increaseHP(10);
+                int incHp = increaseHP(10);
+                sb.append("HP +").append(incHp);
+                drawColor = Color.GREEN;
                 break;
             case AMMOS:
-                weapon.increaseAmmo(20);
+                int incAmmo = weapon.increaseAmmo(20);
+                sb.append("AMMO +").append(incAmmo);
+                drawColor = Color.FIREBRICK;
                 break;
             case MONEY:
                 increaseCoin(100);
+                sb.append("COINS +").append(100);
+                drawColor = Color.GOLD;
                 break;
         }
         powerUps.deactivate();
+        gc.getInfoController().setup(powerUps.getPosition().x, powerUps.getPosition().y, sb, drawColor);
+        sb.setLength(0);
     }
 
     private boolean weaponUpgrade() {
@@ -172,66 +150,16 @@ public class Hero {
         return false;
     }
 
-    private void createWeapon() {
-        weapons = new Weapon[]{
-                new Weapon(gc.getBulletController(), 0.4f, 1, 300, 100,
-                        new Vector3[]{
-                                new Vector3(28, 0, 0)
-                        }),
-                new Weapon(gc.getBulletController(), 0.3f, 1, 400, 150,
-                        new Vector3[]{
-                                new Vector3(28, 90, 0),
-                                new Vector3(28, -90, 0)
-                        }),
-                new Weapon(gc.getBulletController(), 0.2f, 1, 500, 200,
-                        new Vector3[]{
-                                new Vector3(28, 0, 0),
-                                new Vector3(28, 90, 10),
-                                new Vector3(28, -90, -10)
-                        }),
-                new Weapon(gc.getBulletController(), 0.1f, 1, 500, 200,
-                        new Vector3[]{
-                                new Vector3(28, 0, 0),
-                                new Vector3(28, 90, 10),
-                                new Vector3(28, -90, -10)
-                        }),
-                new Weapon(gc.getBulletController(), 0.2f, 2, 600, 250,
-                        new Vector3[]{
-                                new Vector3(28, 0, 0),
-                                new Vector3(28, 90, 10),
-                                new Vector3(28, 90, 20),
-                                new Vector3(28, -90, -10),
-                                new Vector3(28, -90, -20)
-                        }),
-                new Weapon(gc.getBulletController(), 0.1f, 2, 700, 300,
-                        new Vector3[]{
-                                new Vector3(28, 0, 0),
-                                new Vector3(28, 90, 10),
-                                new Vector3(28, 90, 20),
-                                new Vector3(28, -90, -10),
-                                new Vector3(28, -90, -20)
-                        }),
-                new Weapon(gc.getBulletController(), 0.1f, 5, 800, 350,
-                        new Vector3[]{
-                                new Vector3(28, 0, 0),
-                                new Vector3(28, 90, 10),
-                                new Vector3(28, 90, 15),
-                                new Vector3(28, 90, 25),
-                                new Vector3(28, -90, -10),
-                                new Vector3(28, -90, -15),
-                                new Vector3(28, -90, -25)
-                        })
-        };
-    }
-
-    private void increaseHP(int amount) {
+    private int increaseHP(int amount) {
+        int oldHp = hp;
         hp += amount;
         if (hp > hpMax) {
             hp = hpMax;
         }
+        return hp - oldHp;
     }
 
-    private void increaseCoin(int amount) {
+    public void increaseCoin(int amount) {
         coins += amount;
     }
 
@@ -295,7 +223,7 @@ public class Hero {
 
         velocity.scl(lessEnginePowerKoef);
         checkBorder();
-
+        this.magneticArea.setPosition(position);
     }
 
     private void updateScore(float dt) {
@@ -307,13 +235,6 @@ public class Hero {
         }
     }
 
-    private void tryToFire() {
-        if (fireTimer > weapon.getFirePeriod()) {
-            fireTimer = 0.0f;
-            weapon.fire(position, velocity, angle);
-        }
-    }
-
     public void renderGUI(SpriteBatch batch, BitmapFont font32) {
         sb.setLength(0);
         sb.append("SCORE: ").append(scoreView).append("\n")
@@ -322,7 +243,6 @@ public class Hero {
                 .append("COINS: ").append(coins);
         font32.draw(batch, sb, 20, 700);
         sb.setLength(0);
-        sb.append("LEVEL: ").append(gc.getLevel());
         font32.draw(batch, sb, 1080, 700);
     }
 
@@ -333,29 +253,4 @@ public class Hero {
                     magneticArea.y + magneticRadius * MathUtils.sinDeg(360.0f / 120.0f * i) - 8);
         }
     }
-
-    private void checkBorder() {
-        if (position.x < 32) {
-            position.x = 32;
-            velocity.x *= -0.5f;
-        } else if (position.x > SCREEN_WIDTH - 32) {
-            position.x = SCREEN_WIDTH - 32;
-            velocity.x *= -0.5f;
-        }
-        if (position.y < 32) {
-            position.y = 32;
-            velocity.y *= -0.5f;
-        } else if (position.y > SCREEN_HEIGHT - 32) {
-            position.y = SCREEN_HEIGHT - 32;
-            velocity.y *= -0.5f;
-        }
-        this.hitArea.setPosition(position);
-        this.magneticArea.setPosition(position);
-    }
-
-    public boolean takeDamage(int damage) {
-        hp -= damage;
-        return hp <= 0;
-    }
-
 }

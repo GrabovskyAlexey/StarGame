@@ -3,6 +3,7 @@ package ru.star.app.game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import ru.star.app.game.Weapon.WeaponOwner;
 import ru.star.app.game.helpers.ObjectPool;
 import ru.star.app.screen.utils.Assets;
 
@@ -47,7 +48,7 @@ public class BulletController extends ObjectPool<Bullet> {
         checkPool();
     }
 
-    public void setup(float x, float y, float vx, float vy) {
-        getActiveElement().activate(x, y, vx, vy);
+    public void setup(float x, float y, float vx, float vy, WeaponOwner owner, int damage) {
+        getActiveElement().activate(x, y, vx, vy, owner, damage);
     }
 }
