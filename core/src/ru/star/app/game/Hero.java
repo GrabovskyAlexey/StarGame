@@ -14,7 +14,7 @@ import ru.star.app.screen.utils.Assets;
 import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
 import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
 
-public class Hero extends Ship{
+public class Hero extends Ship {
     public enum HeroUpgrade {
         HPMAX(10, 10), HP(5, 10), WEAPON(100, 1), MAGNETIC(50, 10), BULLET(10, 20);
         int cost;
@@ -35,7 +35,18 @@ public class Hero extends Ship{
     private StringBuilder sb;
     private int coins;
     private Shop shop;
+    private Circle shieldArea;
+    private int maxShieldPower;
+    private int currentShieldPower;
+    private float shieldRechargeTimer;
 
+    public int getCurrentShieldPower() {
+        return currentShieldPower;
+    }
+
+    public Circle getShieldArea() {
+        return shieldArea;
+    }
 
     public int getCoins() {
         return coins;
@@ -70,9 +81,12 @@ public class Hero extends Ship{
         this.hp = hpMax;
         this.hitArea = new Circle(position, 28.0f);
         this.magneticArea = new Circle(position, magneticRadius);
+        this.shieldArea = new Circle(position, 56.0f);
         this.sb = new StringBuilder();
         this.shop = new Shop(this);
         this.coins = 100;
+        this.maxShieldPower = 20;
+        this.currentShieldPower = maxShieldPower;
     }
 
     public boolean isMoneyEnough(int amount) {
@@ -142,7 +156,7 @@ public class Hero extends Ship{
     }
 
     private boolean weaponUpgrade() {
-        if(currWeapon < weapons.length -1){
+        if (currWeapon < weapons.length - 1) {
             currWeapon++;
             weapon = weapons[currWeapon];
             return true;
@@ -164,8 +178,9 @@ public class Hero extends Ship{
     }
 
     public void update(float dt) {
-        fireTimer += dt;
+        super.update(dt);
         updateScore(dt);
+        rechargeShield(dt);
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
             angle += 180 * dt;
@@ -173,8 +188,7 @@ public class Hero extends Ship{
             angle -= 180 * dt;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            velocity.x += MathUtils.cosDeg(angle) * SHIP_SPEED * dt;
-            velocity.y += MathUtils.sinDeg(angle) * SHIP_SPEED * dt;
+            accelerate(dt);
 
             float bx = position.x + MathUtils.cosDeg(angle + 180) * 25;
             float by = position.y + MathUtils.sinDeg(angle + 180) * 25;
@@ -188,29 +202,15 @@ public class Hero extends Ship{
             }
 
         } else if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            velocity.x -= MathUtils.cosDeg(angle) * (SHIP_SPEED / 2) * dt;
-            velocity.y -= MathUtils.sinDeg(angle) * (SHIP_SPEED / 2) * dt;
+            brake(dt);
 
             float bx = position.x + MathUtils.cosDeg(angle + 90) * 25;
             float by = position.y + MathUtils.sinDeg(angle + 90) * 25;
-            for (int i = 0; i < 3; i++) {
-                gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
-                        velocity.x * 0.1f + MathUtils.random(-10, 10), velocity.y * 0.1f + MathUtils.random(-10, 10),
-                        0.2f,
-                        1.2f, 0.2f,
-                        1.0f, 0.5f, 0.0f, 1.0f,
-                        1.0f, 1.0f, 0.0f, 0.0f);
-            }
+            drawBrakeFire(bx, by);
+
             bx = position.x + MathUtils.cosDeg(angle - 90) * 25;
             by = position.y + MathUtils.sinDeg(angle - 90) * 25;
-            for (int i = 0; i < 3; i++) {
-                gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
-                        velocity.x * 0.1f + MathUtils.random(-10, 10), velocity.y * 0.1f + MathUtils.random(-10, 10),
-                        0.2f,
-                        1.2f, 0.2f,
-                        1.0f, 0.5f, 0.0f, 1.0f,
-                        1.0f, 1.0f, 0.0f, 0.0f);
-            }
+            drawBrakeFire(bx, by);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             tryToFire();
@@ -224,6 +224,31 @@ public class Hero extends Ship{
         velocity.scl(lessEnginePowerKoef);
         checkBorder();
         this.magneticArea.setPosition(position);
+        this.shieldArea.setPosition(position);
+    }
+
+    private void rechargeShield(float dt) {
+        shieldRechargeTimer += dt;
+        if (shieldRechargeTimer >= 5) {
+            shieldRechargeTimer = 0;
+            if (currentShieldPower < maxShieldPower) {
+                currentShieldPower += 2;
+            }
+            if (currentShieldPower > maxShieldPower) {
+                currentShieldPower = maxShieldPower;
+            }
+        }
+    }
+
+    private void drawBrakeFire(float bx, float by) {
+        for (int i = 0; i < 3; i++) {
+            gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
+                    velocity.x * 0.1f + MathUtils.random(-10, 10), velocity.y * 0.1f + MathUtils.random(-10, 10),
+                    0.2f,
+                    1.2f, 0.2f,
+                    1.0f, 0.5f, 0.0f, 1.0f,
+                    1.0f, 1.0f, 0.0f, 0.0f);
+        }
     }
 
     private void updateScore(float dt) {
@@ -239,6 +264,7 @@ public class Hero extends Ship{
         sb.setLength(0);
         sb.append("SCORE: ").append(scoreView).append("\n")
                 .append("HP: ").append(hp).append("/").append(hpMax).append("\n")
+                .append("SHIELD: ").append(currentShieldPower).append("/").append(maxShieldPower).append("\n")
                 .append("AMMO: ").append(weapon.getCurrBullets()).append("/").append(weapon.getMaxBullets()).append("\n")
                 .append("COINS: ").append(coins);
         font32.draw(batch, sb, 20, 700);
@@ -246,11 +272,25 @@ public class Hero extends Ship{
         font32.draw(batch, sb, 1080, 700);
     }
 
-    public void drawMagneticField(SpriteBatch batch) {
-        batch.setColor(Color.WHITE);
-        for (int i = 0; i < 120; i++) {
-            batch.draw(starTexture, magneticArea.x + magneticRadius * MathUtils.cosDeg(360.0f / 120.0f * i) - 8,
-                    magneticArea.y + magneticRadius * MathUtils.sinDeg(360.0f / 120.0f * i) - 8);
+    public void drawPowerShield(SpriteBatch batch) {
+        if(currentShieldPower > 0) {
+            batch.setColor(Color.WHITE);
+            for (int i = 0; i < 120; i++) {
+                batch.draw(starTexture, magneticArea.x + shieldArea.radius * MathUtils.cosDeg(360.0f / 120.0f * i) - 8,
+                        magneticArea.y + shieldArea.radius * MathUtils.sinDeg(360.0f / 120.0f * i) - 8);
+            }
         }
+    }
+
+    @Override
+    public void takeDamage(int damage) {
+        if (currentShieldPower > 0) {
+            currentShieldPower -= damage;
+        }
+        if (currentShieldPower <= 0) {
+            super.takeDamage(damage + currentShieldPower);
+            currentShieldPower = 0;
+        }
+
     }
 }

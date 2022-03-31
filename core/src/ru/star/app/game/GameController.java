@@ -192,6 +192,27 @@ public class GameController {
                 hero.takeDamage(asteroid.getDamage());
             }
         }
+        for (int i = 0; i < asteroidController.getActiveList().size(); i++) {
+            Asteroid a = asteroidController.getActiveList().get(i);
+            for (int j = 0; j < botController.getActiveList().size(); j++) {
+                Bot b = botController.getActiveList().get(j);
+
+                if (b.getHitArea().overlaps(a.getHitArea())) {
+                    float dst = a.getPosition().dst(b.getPosition());
+                    float halfOverLen = (a.getHitArea().radius + b.getHitArea().radius - dst) / 2.0f;
+                    tempVector.set(b.getPosition()).sub(a.getPosition()).nor();
+                    b.getPosition().mulAdd(tempVector, halfOverLen);
+                    a.getPosition().mulAdd(tempVector, -halfOverLen);
+
+                    float sumScl = b.getHitArea().radius * 2 + a.getHitArea().radius;
+                    b.getVelocity().mulAdd(tempVector, 200.0f * a.getHitArea().radius / sumScl);
+                    a.getVelocity().mulAdd(tempVector, -200.0f * b.getHitArea().radius / sumScl);
+
+                    a.takeDamage(1);
+                    b.takeDamage(level);
+                }
+            }
+        }
     }
 
     private void checkMagnetic() {
@@ -206,10 +227,10 @@ public class GameController {
         }
     }
 
-    private void checkBots(){
+    private void checkBots() {
         for (int i = 0; i < botController.getActiveList().size(); i++) {
             Bot bot = botController.getActiveList().get(i);
-            if(bot.getAttackArea().overlaps(hero.getHitArea())){
+            if (bot.getAttackArea().overlaps(hero.getHitArea())) {
                 tempVector.set(hero.getPosition()).sub(bot.getPosition()).nor();
                 bot.setAngle(tempVector.x, tempVector.y);
                 bot.tryToFire();
@@ -220,9 +241,6 @@ public class GameController {
     private void checkCollision() {
         for (int i = 0; i < bulletController.getActiveList().size(); i++) {
             Bullet bullet = bulletController.getActiveList().get(i);
-            if (bullet.getOwner() != WeaponOwner.HERO) {
-                continue;
-            }
             for (int j = 0; j < asteroidController.getActiveList().size(); j++) {
                 Asteroid asteroid = asteroidController.getActiveList().get(j);
                 if (asteroid.getHitArea().contains(bullet.getPosition())) {
@@ -244,22 +262,26 @@ public class GameController {
                         } else {
                             destroyBot.play();
                         }
-                        hero.addScore(asteroid.getHpMax() * 100);
+                        if(bullet.getOwner() == WeaponOwner.HERO) {
+                            hero.addScore(asteroid.getHpMax() * 100);
+                        }
                     }
                     break;
                 }
             }
-            for (int j = 0; j < botController.getActiveList().size(); j++) {
-                Bot bot = botController.getActiveList().get(j);
-                if (bot.getHitArea().contains(bullet.getPosition())) {
-                    bot.takeDamage(bullet.getDamage());
-                    infoController.setup(bot.getPosition().x, bot.getPosition().y, "HP -" + bullet.getDamage(), Color.ORANGE);
-                    bullet.deactivate();
-                    if (!bot.isAlive()) {
-                        hero.addScore(300);
-                        hero.increaseCoin(50);
-                        bot.deactivate();
-                        destroyBot.play();
+            if(bullet.getOwner() == WeaponOwner.HERO) {
+                for (int j = 0; j < botController.getActiveList().size(); j++) {
+                    Bot bot = botController.getActiveList().get(j);
+                    if (bot.getHitArea().contains(bullet.getPosition())) {
+                        bot.takeDamage(bullet.getDamage());
+                        infoController.setup(bot.getPosition().x, bot.getPosition().y, "HP -" + bullet.getDamage(), Color.ORANGE);
+                        bullet.deactivate();
+                        if (!bot.isAlive()) {
+                            hero.addScore(300);
+                            hero.increaseCoin(50);
+                            bot.deactivate();
+                            destroyBot.play();
+                        }
                     }
                 }
             }
@@ -272,10 +294,18 @@ public class GameController {
             if (bullet.getOwner() != WeaponOwner.BOT) {
                 continue;
             }
-            if (hero.getHitArea().contains(bullet.getPosition())) {
-                hero.takeDamage(bullet.getDamage());
-                infoController.setup(hero.getPosition().x, hero.getPosition().y, "HP -" + bullet.getDamage(), Color.RED);
-                bullet.deactivate();
+            if (hero.getCurrentShieldPower() > 0) {
+                if (hero.getShieldArea().contains(bullet.getPosition())) {
+                    hero.takeDamage(bullet.getDamage());
+                    infoController.setup(hero.getPosition().x, hero.getPosition().y, "HP -" + bullet.getDamage(), Color.RED);
+                    bullet.deactivate();
+                }
+            } else {
+                if (hero.getHitArea().contains(bullet.getPosition())) {
+                    hero.takeDamage(bullet.getDamage());
+                    infoController.setup(hero.getPosition().x, hero.getPosition().y, "HP -" + bullet.getDamage(), Color.RED);
+                    bullet.deactivate();
+                }
             }
         }
     }

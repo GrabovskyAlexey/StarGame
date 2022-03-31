@@ -3,6 +3,7 @@ package ru.star.app.game;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import ru.star.app.game.Weapon.WeaponOwner;
@@ -133,12 +134,35 @@ public class Ship {
         this.hitArea.setPosition(position);
     }
 
-    public boolean takeDamage(int damage) {
+    public void takeDamage(int damage) {
         hp -= damage;
-        return hp <= 0;
     }
+
+    public void update(float dt) {
+        fireTimer += dt;
+        position.mulAdd(velocity, dt);
+        hitArea.setPosition(position);
+
+        float stopKoef = 1.0f - dt;
+        if (stopKoef < 0.0f) {
+            stopKoef = 0.0f;
+        }
+        velocity.scl(stopKoef);
+        checkBorder();
+    }
+
 
     public boolean isAlive(){
         return hp > 0;
+    }
+
+    protected void accelerate(float dt) {
+        velocity.x += MathUtils.cosDeg(angle) * SHIP_SPEED * dt;
+        velocity.y += MathUtils.sinDeg(angle) * SHIP_SPEED * dt;
+    }
+
+    protected void brake(float dt){
+        velocity.x -= MathUtils.cosDeg(angle) * (SHIP_SPEED / 2) * dt;
+        velocity.y -= MathUtils.sinDeg(angle) * (SHIP_SPEED / 2) * dt;
     }
 }
