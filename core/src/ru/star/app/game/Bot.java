@@ -11,8 +11,9 @@ import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
 
 public class Bot extends Ship implements Poolable {
     private boolean active;
-    private final float ATTACK_RADIUS = 300.0f;
+    private final float ATTACK_RADIUS = 400.0f;
     private Circle attackArea;
+    private Vector2 tempVec;
 
     public Bot(GameController gc) {
         super(gc, Weapon.WeaponOwner.BOT);
@@ -23,6 +24,7 @@ public class Bot extends Ship implements Poolable {
         this.hp = hpMax;
         this.hitArea = new Circle(position, 28.0f);
         this.attackArea = new Circle(position, ATTACK_RADIUS);
+        this.tempVec = new Vector2();
     }
 
     public void setAngle(float x, float y){
@@ -55,27 +57,28 @@ public class Bot extends Ship implements Poolable {
     }
 
     public void update(float dt){
-        fireTimer += dt;
-        velocity.x += MathUtils.cosDeg(angle) * SHIP_SPEED * dt;
-        velocity.y += MathUtils.sinDeg(angle) * SHIP_SPEED * dt;
-        float bx = position.x + MathUtils.cosDeg(angle + 180) * 25;
-        float by = position.y + MathUtils.sinDeg(angle + 180) * 25;
-        for (int i = 0; i < 3; i++) {
-            gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
-                    velocity.x * -0.1f + MathUtils.random(-10, 10), velocity.y * -0.1f + MathUtils.random(-10, 10),
-                    0.3f,
-                    1.2f, 0.2f,
-                    1.0f, 0.5f, 0.0f, 1.0f,
-                    1.0f, 1.0f, 0.0f, 0.0f);
+        super.update(dt);
+
+        tempVec.set(gc.getHero().getPosition()).sub(position).nor();
+        angle = tempVec.angleDeg();
+        if (gc.getHero().getPosition().dst(position) > 300) {
+            accelerate(dt);
+
+            float bx = position.x + MathUtils.cosDeg(angle + 180) * 25;
+            float by = position.y + MathUtils.sinDeg(angle + 180) * 25;
+
+            for (int i = 0; i < 3; i++) {
+                gc.getParticleController().setup(bx + MathUtils.random(-4, 4), by + MathUtils.random(-4, 4),
+                        velocity.x * -0.1f + MathUtils.random(-20, 20), velocity.y * -0.1f + MathUtils.random(-20, 20),
+                        0.4f,
+                        1.2f, 0.2f,
+                        0.0f, 0.5f, 1.0f, 1.0f,
+                        0.0f, 1.0f, 1.0f, 0.0f);
+            }
         }
-        position.mulAdd(velocity, dt);
-        hitArea.setPosition(position);
-        float lessEnginePowerKoef = 1.0f - dt;
-        if (lessEnginePowerKoef < 0.0f) {
-            lessEnginePowerKoef = 0.0f;
+        if (gc.getHero().getPosition().dst(position) < ATTACK_RADIUS) {
+            tryToFire();
         }
-        velocity.scl(lessEnginePowerKoef);
-        checkBorder();
     }
 
     @Override

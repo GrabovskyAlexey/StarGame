@@ -52,6 +52,36 @@ public class ParticleController extends ObjectPool<Particle> {
             }
 
         }
+
+        public void createBulletTrace(Bullet b) {
+            switch (b.getOwner()) {
+                case HERO:
+                    for (int i = 0; i < 3; i++) {
+                        setup(b.getPosition().x,
+                                b.getPosition().y,
+                                b.getVelocity().x * -0.1f + MathUtils.random(-20, 20),
+                                b.getVelocity().y * -0.1f + MathUtils.random(-20, 20),
+                                0.15f,
+                                1.2f, 0.2f,
+                                1.0f, 0.0f, 0.0f, 1.0f,
+                                1.0f, 1.0f, 0.0f, 0.0f);
+                    }
+                    break;
+                case BOT:
+                    for (int i = 0; i < 2; i++) {
+                        setup(b.getPosition().x,
+                                b.getPosition().y,
+                                b.getVelocity().x * -0.1f + MathUtils.random(-20, 20),
+                                b.getVelocity().y * -0.1f + MathUtils.random(-20, 20),
+                                0.1f,
+                                2.2f, 1.5f,
+                                0.0f, 0.5f, 0.0f, 1.0f,
+                                0.0f, 0.7f, 0.0f, 0.0f);
+                    }
+                    break;
+            }
+
+        }
     }
 
     private TextureRegion oneParticle;
