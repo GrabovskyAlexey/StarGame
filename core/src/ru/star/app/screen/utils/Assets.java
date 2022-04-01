@@ -3,13 +3,15 @@ package ru.star.app.screen.utils;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGeneratorLoader;
 import com.badlogic.gdx.graphics.g2d.freetype.FreetypeFontLoader;
-import ru.star.app.screen.ScreenSettings;
+import ru.star.app.screen.ScreenManager.ScreenType;
 
 public class Assets {
     private static final Assets ourInstance = new Assets();
@@ -33,13 +35,29 @@ public class Assets {
         assetManager = new AssetManager();
     }
 
-    public void loadAssets(ScreenSettings.ScreenType type) {
+    public void loadAssets(ScreenType type) {
         switch (type) {
             case GAME:
                 assetManager.load("images/game.pack", TextureAtlas.class);
                 createStandardFont(32);
-                assetManager.finishLoading();
-                textureAtlas = assetManager.get("images/game.pack", TextureAtlas.class);
+                createStandardFont(24);
+                assetManager.load("audio/mortal.mp3", Music.class);
+                assetManager.load("audio/shoot.mp3", Sound.class);
+                assetManager.load("audio/explose.mp3", Sound.class);
+                assetManager.load("audio/explose2.mp3", Sound.class);
+                break;
+            case MENU:
+                assetManager.load("images/game.pack", TextureAtlas.class);
+                createStandardFont(72);
+                createStandardFont(24);
+                assetManager.load("audio/music.mp3", Music.class);
+                break;
+            case GAME_OVER:
+                assetManager.load("images/game.pack", TextureAtlas.class);
+                createStandardFont(72);
+                createStandardFont(48);
+                createStandardFont(24);
+                assetManager.load("audio/music.mp3", Music.class);
                 break;
         }
     }
@@ -60,5 +78,9 @@ public class Assets {
 
     public void clear() {
         assetManager.clear();
+    }
+
+    public void makeLinks(){
+        textureAtlas = assetManager.get("images/game.pack", TextureAtlas.class);
     }
 }

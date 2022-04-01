@@ -7,8 +7,8 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import ru.star.app.screen.utils.Assets;
 
-import static ru.star.app.screen.ScreenSettings.SCREEN_HEIGHT;
-import static ru.star.app.screen.ScreenSettings.SCREEN_WIDTH;
+import static ru.star.app.screen.ScreenManager.SCREEN_HEIGHT;
+import static ru.star.app.screen.ScreenManager.SCREEN_WIDTH;
 
 public class Background {
 
@@ -41,8 +41,16 @@ public class Background {
 
     public Background(GameController gc) {
         this.gc = gc;
+        prepareBackground();
+    }
+
+    public Background() {
+        this.gc = null;
+        prepareBackground();
+    }
+
+    private void prepareBackground() {
         textureCosmos = new Texture("images/bg.png");
-        textureStar = Assets.getInstance().getAtlas().findRegion("star16");
         stars = new Star[START_COUNT];
         for (int i = 0; i < stars.length; i++) {
             stars[i] = new Star();
@@ -52,8 +60,10 @@ public class Background {
 
     public void render(SpriteBatch batch) {
         batch.draw(textureCosmos, 0, 0);
+        if(textureStar == null){
+            textureStar = Assets.getInstance().getAtlas().findRegion("star16");
+        }
         for (int i = 0; i < stars.length; i++) {
-
             batch.draw(textureStar, stars[i].position.x - 8, stars[i].position.y - 8, 8, 8,
                     16, 16, stars[i].scale, stars[i].scale, 0);
             if (MathUtils.random(0, 300) < 1) {
@@ -64,8 +74,14 @@ public class Background {
     }
 
     public void update(float dt) {
-        for (int i = 0; i < stars.length; i++) {
-            stars[i].update(dt);
+        if(this.gc != null) {
+            for (int i = 0; i < stars.length; i++) {
+                stars[i].update(dt);
+            }
         }
+    }
+
+    public void dispose() {
+        textureCosmos.dispose();
     }
 }

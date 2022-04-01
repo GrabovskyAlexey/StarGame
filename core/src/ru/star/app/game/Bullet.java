@@ -1,14 +1,17 @@
 package ru.star.app.game;
 
 import com.badlogic.gdx.math.Vector2;
+import ru.star.app.game.Weapon.WeaponOwner;
 import ru.star.app.game.helpers.Poolable;
 
-import static ru.star.app.screen.ScreenSettings.*;
+import static ru.star.app.screen.ScreenManager.*;
 
 public class Bullet implements Poolable {
+
     private Vector2 position;
     private Vector2 velocity;
     private boolean active;
+    private WeaponOwner owner;
     private int damage;
 
     public int getDamage() {
@@ -23,6 +26,10 @@ public class Bullet implements Poolable {
         return velocity;
     }
 
+    public WeaponOwner getOwner() {
+        return owner;
+    }
+
     @Override
     public boolean isActive() {
         return active;
@@ -34,13 +41,15 @@ public class Bullet implements Poolable {
         this.active = false;
     }
 
-    public void activate(float x, float y, float vx, float vy) {
+    public void activate(float x, float y, float vx, float vy, WeaponOwner owner, int damage) {
         this.position.x = x;
         this.position.y = y;
         this.velocity.x = vx;
         this.velocity.y = vy;
+        this.damage = damage;
+        this.owner = owner;
         active = true;
-        damage = 1;
+
     }
 
     public void deactivate() {

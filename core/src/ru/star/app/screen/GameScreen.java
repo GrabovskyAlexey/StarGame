@@ -6,18 +6,17 @@ import ru.star.app.game.WorldRenderer;
 import ru.star.app.screen.utils.Assets;
 
 public class GameScreen extends AbstractScreen {
-    private SpriteBatch batch;
     private GameController gc;
     private WorldRenderer renderer;
 
     public GameScreen(SpriteBatch batch) {
-        this.batch = batch;
+        super(batch);
     }
 
     @Override
     public void show() {
-        Assets.getInstance().loadAssets(ScreenSettings.ScreenType.GAME);
-        gc = new GameController();
+        Assets.getInstance().loadAssets(ScreenManager.ScreenType.GAME);
+        gc = new GameController(batch);
         renderer = new WorldRenderer(gc, batch);
     }
 
