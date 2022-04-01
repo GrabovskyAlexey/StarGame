@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import ru.star.app.StarGame;
+import ru.star.app.game.Hero;
 import ru.star.app.screen.utils.Assets;
 
 public class ScreenManager {
@@ -54,11 +55,7 @@ public class ScreenManager {
         viewport.apply();
     }
 
-    public void setGameOverScore(int score){
-        this.gameOverScreen.setScore(score);
-    }
-
-    public void changeScreen(ScreenType type) {
+    public void changeScreen(ScreenType type, Object... args) {
         Screen screen = game.getScreen();
         Assets.getInstance().clear();
         if (screen != null) {
@@ -76,6 +73,7 @@ public class ScreenManager {
                 Assets.getInstance().loadAssets(ScreenType.MENU);
                 break;
             case GAME_OVER:
+                gameOverScreen.setDefeatedHero((Hero) args[0]);
                 targetScreen = gameOverScreen;
                 Assets.getInstance().loadAssets(ScreenType.GAME_OVER);
                 break;

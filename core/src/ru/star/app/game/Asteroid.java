@@ -22,9 +22,14 @@ public class Asteroid implements Poolable {
     private float rotationSpeed;
     private Circle hitArea;
     private float scale;
+    private int damage;
 
     private final float BASE_SIZE = 256.0f;
     private final float BASE_RADIUS = BASE_SIZE / 2;
+
+    public int getDamage() {
+        return damage;
+    }
 
     public Vector2 getVelocity() {
         return velocity;
@@ -57,12 +62,13 @@ public class Asteroid implements Poolable {
         this.texture = Assets.getInstance().getAtlas().findRegion("asteroid");
     }
 
-    public void activate(float x, float y, float vx, float vy, float scale) {
+    public void activate(float x, float y, float vx, float vy, float scale, int level) {
         this.position.set(x, y);
         this.velocity.set(vx, vy);
         this.angle = MathUtils.random(0, 360);
         this.active = true;
-        this.hpMax = (int) (10 * scale);
+        this.hpMax = (int) (10 * scale) + level;
+        this.damage = level + (int) (scale * level);
         this.hp = hpMax;
         this.scale = scale;
         this.hitArea.setPosition(x, y);
@@ -78,7 +84,6 @@ public class Asteroid implements Poolable {
         position.mulAdd(velocity, dt);
         angle += rotationSpeed * dt;
         checkBorder();
-
     }
 
     public void render(SpriteBatch batch) {
@@ -87,15 +92,15 @@ public class Asteroid implements Poolable {
     }
 
     private void checkBorder() {
-        if (position.x < -128) {
-            position.x = SCREEN_WIDTH + 128;
-        } else if (position.x > SCREEN_WIDTH + 128) {
-            position.x = -128;
+        if (position.x < -hitArea.radius) {
+            position.x = SCREEN_WIDTH + hitArea.radius;
+        } else if (position.x > SCREEN_WIDTH + hitArea.radius) {
+            position.x = -hitArea.radius;
         }
-        if (position.y < -128) {
-            position.y = SCREEN_HEIGHT + 128;
-        } else if (position.y > SCREEN_HEIGHT + 128) {
-            position.y = -128;
+        if (position.y < -hitArea.radius) {
+            position.y = SCREEN_HEIGHT + hitArea.radius;
+        } else if (position.y > SCREEN_HEIGHT + hitArea.radius) {
+            position.y = -hitArea.radius;
         }
         hitArea.setPosition(position);
     }

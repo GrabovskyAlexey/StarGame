@@ -1,26 +1,28 @@
 package ru.star.app.screen;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import ru.star.app.game.Background;
+import ru.star.app.game.Hero;
 import ru.star.app.screen.utils.Assets;
 
 
 public class GameOverScreen extends AbstractScreen {
     private BitmapFont font72;
-    private Stage stage;
+    private BitmapFont font48;
+    private BitmapFont font24;
     private Background bg;
     private StringBuilder sb;
+    private Hero defeatedHero;
+    private Music music;
 
-    public void setScore(int score) {
-        this.score = score;
+    public void setDefeatedHero(Hero defeatedHero) {
+        this.defeatedHero = defeatedHero;
     }
-
-    private int score;
 
     public GameOverScreen(SpriteBatch batch) {
         super(batch);
@@ -30,15 +32,16 @@ public class GameOverScreen extends AbstractScreen {
 
     @Override
     public void show() {
-        this.stage = new Stage(ScreenManager.getInstance().getViewport(), batch);
         this.font72 = Assets.getInstance().getAssetManager().get("fonts/font72.ttf");
-
-        Gdx.input.setInputProcessor(stage);
+        this.font48 = Assets.getInstance().getAssetManager().get("fonts/font48.ttf");
+        this.font24 = Assets.getInstance().getAssetManager().get("fonts/font24.ttf");
+        this.music = Assets.getInstance().getAssetManager().get("audio/music.mp3");
+        this.music.setLooping(true);
+        this.music.play();
     }
 
     public void update(float dt) {
-        stage.act(dt);
-        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)){
+        if(Gdx.input.justTouched()){
             ScreenManager.getInstance().changeScreen(ScreenManager.ScreenType.MENU);
         }
     }
@@ -46,18 +49,20 @@ public class GameOverScreen extends AbstractScreen {
     @Override
     public void render(float delta) {
         update(delta);
-        sb.append("GameOver").append("\n").append("Your score: ").append(score);
+        sb.setLength(0);
+        sb.append("Your score: ").append(defeatedHero.getScore()).append("\n");
+        sb.append("Your money: ").append(defeatedHero.getCoins()).append("\n");
         ScreenUtils.clear(0.0f, 0.0f, 0.2f, 1);
         batch.begin();
         bg.render(batch);
-        font72.draw(batch, sb, 0, 600, 1280, 1, false);
-        sb.setLength(0);
+        font72.draw(batch, "GameOver", 0, 600, ScreenManager.SCREEN_WIDTH, Align.center, false);
+        font48.draw(batch, sb, 0, 400, ScreenManager.SCREEN_WIDTH, Align.center, false);
+        font24.draw(batch, "Tap on screen to return to main menu", 0, 40, ScreenManager.SCREEN_WIDTH, Align.center, false);
         batch.end();
-        stage.draw();
     }
 
     @Override
     public void dispose() {
-
+        bg.dispose();
     }
 }
